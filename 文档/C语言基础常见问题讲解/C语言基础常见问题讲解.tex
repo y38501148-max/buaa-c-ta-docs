@@ -84,6 +84,8 @@
 
 \term{伪代码}是用接近代码的形式写出的解题步骤。它可以使用中文变量名，目的是先把思路说清楚；伪代码不能直接提交，也不能直接交给编译器运行。本文只在需要概括解题步骤时使用伪代码，并省略不影响思路的语法细节。
 
+本文的代码和格式说明按\term{C99} 标准理解。C99 是 C 语言在 1999 年制定的一版标准；课程中使用的常见 C 编译器通常支持它。
+
 \section{先认识一个完整的 C 程序}
 
 \clabel
@@ -145,11 +147,11 @@ printf("%d\n", n);
 
 \verb|int| 保存整数。\verb|long long| 也保存整数，但通常能保存比 \verb|int| 更大的整数。\verb|double| 保存带小数部分的数。\verb|char| 保存一个字符，例如字母 \verb|A| 或符号 \verb|+|。
 
-格式说明符必须与变量类型对应。类型不对应时，程序可能读错数据或输出错误结果。特别注意：\verb|double| 在 \verb|scanf| 中使用 \verb|%lf|，在 \verb|printf| 中使用 \verb|%f|。
+格式说明符必须与变量类型对应。类型不对应时，程序可能读错数据或输出错误结果。特别注意：\verb|double| 在 \verb|scanf| 中使用 \verb|%lf|；在 \verb|printf| 中通常写 \verb|%f|。按 C99，\verb|printf| 中的 \verb|%lf| 与 \verb|%f| 效果相同；为了和常见写法一致，本文输出 \verb|double| 时写 \verb|%f|。\verb|float| 传给 \verb|printf| 时会自动按 \verb|double| 处理，因此同样使用 \verb|%f|；但 \verb|scanf| 读入 \verb|float| 时使用 \verb|%f|，读入 \verb|double| 时才使用 \verb|%lf|。
 
-\subsection{scanf 中为什么通常要写取地址符}
+\subsection{scanf 中的 \& 要先记住}
 
-程序运行时，变量暂时存放在计算机的\term{内存}中。\verb|scanf| 要把读到的数据放进变量，所以必须知道变量在内存中的位置。变量名前的 \verb|&| 叫作\term{取地址符}，表示“这个变量的位置”。
+初学阶段先记住一条规则：用 \verb|scanf| 把普通数据读进变量时，变量名前通常写 \verb|&|。例如，读入整数变量 \verb|n| 时写 \verb|&n|。符号 \verb|&| 叫作\term{取地址符}；它的底层原因会在后续学习指针时再解释。
 
 \good：
 \begin{lstlisting}[style=cstyle]
@@ -163,7 +165,7 @@ int n;
 scanf("%d", n);
 \end{lstlisting}
 
-第二段代码没有把变量 \verb|n| 的位置交给 \verb|scanf|。程序可能崩溃，也可能得到无法预测的结果。\verb|printf| 只读取变量中已有的值，不会向变量里存入新数据，因此输出普通变量时通常不写 \verb|&|。
+第二段代码漏掉了这条规则，程序可能崩溃，也可能得到无法预测的结果。\verb|printf| 只读取变量中已有的值，不会向变量里存入新数据，因此输出普通变量时不写 \verb|&|。
 
 \subsection{一次输入多个数据}
 
@@ -235,8 +237,8 @@ printf("100%%\n");
 \midrule
 \texttt{==} & 等于 & \texttt{a == b} 判断两个值是否相等 \\
 \texttt{!=} & 不等于 & \texttt{a != b} 判断两个值是否不同 \\
-\texttt{\&\&} & 并且 & \texttt{a > 0 \&\& b > 0} 要求两边都成立 \\
-\texttt{||} & 或者 & \texttt{a == 0 || b == 0} 只要求一边成立 \\
+\texttt{\&\&} & 逻辑与 & \texttt{a > 0 \&\& b > 0} 要求两边都成立 \\
+\texttt{||} & 逻辑或 & \texttt{a == 0 || b == 0} 至少一边成立 \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -280,9 +282,9 @@ int main(void)
 
 如果在 \verb|if| 的条件中误写一个等号，例如 \verb|if (x = 5)|，程序会先把 \verb|5| 存进 \verb|x|。这个赋值表达式的结果是非 \verb|0|，所以条件会被当成真。\term{编译警告}是编译器发现可疑写法后给出的提示；代码可能仍能运行，但通常需要检查。编译器往往会为这种写法给出警告，不要直接忽略。
 
-\subsection{并且和或者怎样判断}
+\subsection{逻辑与和逻辑或怎样判断}
 
-\verb|&&| 表示“并且”，左右两边都成立，整个条件才成立。\verb+||+ 表示“或者”，左右两边只要有一边成立，整个条件就成立。
+\verb|&&| 是逻辑与：左右两个条件都为真时，结果才为真。\verb+||+ 是逻辑或：左右两个条件中至少有一个为真时，结果就为真。下表列出了所有组合：
 
 \begin{center}
 \begin{tabular}{cccc}
@@ -297,7 +299,7 @@ int main(void)
 \end{tabular}
 \end{center}
 
-条件较长时，先把题目的句子拆开，再用括号写清组合关系。例如，“年份能被 \verb|400| 整除，或者能被 \verb|4| 整除但不能被 \verb|100| 整除”写成：
+条件较长时，先把题目的句子拆开，再用括号写清组合关系。例如，闰年的条件可写成“能被 \verb|400| 整除”，或“能被 \verb|4| 整除且不能被 \verb|100| 整除”：
 
 \begin{lstlisting}[style=cstyle]
 if (y % 400 == 0 ||
@@ -615,6 +617,34 @@ int main(void)
   \item 圆括号、花括号或双引号没有成对。
   \item 变量没有声明，或者同一个变量名前后拼写不一致。
   \item 使用了中文全角符号，例如中文分号、中文引号或全角感叹号。
+\end{itemize}
+
+下面列出上机时常见的报错。不同编译器给出的文字可能略有不同，但先看最前面出现的具体错误，再看后面的汇总信息。
+
+\begin{itemize}
+  \item \texttt{expected ';' before '...'}：标出的语句或它前一条语句可能少了分号。先检查报错行的上一行，因为编译器常在读到下一条语句时才发现分号缺失。
+  \item \texttt{expected declaration or statement at end of input}：文件读完时，编译器还在等待内容。检查圆括号、花括号和双引号是否成对。
+  \item \texttt{'xxx' undeclared}：名为 \verb|xxx| 的变量或函数没有被识别。检查名称是否拼写一致、是否已经声明，以及当前位置是否仍能使用这个变量。
+  \item \texttt{lvalue required as left operand of assignment}：赋值号左侧必须是可以被写入的变量。检查是否给常量或计算结果赋值；若这行本意是比较相等，确认使用的是 \verb|==|，不是 \verb|=|。
+  \item \texttt{variable-sized object may not be initialized}：在 C99 中，长度由运行时变量决定的数组叫作变长数组。不能在定义这种数组时直接用花括号给初值；需要改用固定长度，或在后面逐个赋值。
+  \item \texttt{invalid operands to binary >> (have 'double' and 'int')}：\verb|>>| 是位运算符，只能用于整数类型；\verb|double| 不能参加位运算。检查是否把运算符写错，或是否把小数用于了位运算。
+  \item \texttt{ld returned 1 exit status}：这是链接器给出的汇总信息，通常不是第一处错误。向上找紧挨着它的报错，例如：
+  \begin{itemize}
+    \item \texttt{undefined reference to 'main'}：没有正确写出主函数。
+    \item \texttt{undefined reference to 'scank'}：函数名可能拼错。
+    \item \texttt{Permission denied}：在 Windows 上常表示上一次运行的程序还没有关闭。
+  \end{itemize}
+\end{itemize}
+
+\subsection{运行错误和返回代码}
+
+程序通过编译后仍可能在运行中异常结束。\term{返回代码}是操作系统或评测系统用来说明程序结束原因的编号；不同平台的编号和文字不完全相同，因此先看评测系统同时显示的错误名称。
+
+\begin{itemize}
+  \item \texttt{3221225477} 或 \texttt{Runtime Error(SIGSEGV)}：\par
+  通常表示访问了错误的地址。优先检查 \verb|scanf| 是否漏写 \verb|&|、格式说明符是否匹配，以及数组下标是否越界。
+  \item \texttt{3221225725}：在 Windows 上通常表示栈溢出。检查递归层数是否过多，以及是否在 \verb|main| 或函数内部声明了过大的数组。某些评测系统显示 \texttt{Runtime Error(SIGABRT)} 时，表示程序异常终止；还应结合具体代码检查数组越界、断言失败等问题。
+  \item \texttt{3221225620} 或 \texttt{Runtime Error(SIGFPE)}：通常表示算术错误。检查是否出现除以零或模零。非 \verb|void| 函数漏写 \verb|return| 也会产生不确定结果，应一并检查，但它不一定直接报这个错误。
 \end{itemize}
 
 \subsection{程序能运行但答案错误}
